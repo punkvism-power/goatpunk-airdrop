@@ -922,30 +922,80 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
   };
   let wallet=null;
 
-  function connect(t){
-    const addr=t==='metamask'
-      ?"0x1a2b3c4d5e6f7890abcdef1234567890abcdef12"
-      :"HN7cABqLq46Es1jh92dQQisAi18upoBB5scN2rQ2VCJi";
-    wallet={type:t,addr};
-    document.getElementById('connAddr').textContent=addr.slice(0,10)+'···'+addr.slice(-8);
-    const data=DB[addr];
-    document.getElementById('allocArea').innerHTML='';
-    document.getElementById('formArea').style.display='none';
-    document.getElementById('nfArea').style.display='none';
-    if(!data||data.goat===0){
-      document.getElementById('nfArea').style.display='block';
+  function showResult(addr, type) {
+    wallet = {type: type, addr: addr};
+    document.getElementById('connAddr').textContent = addr.slice(0,10)+'···'+addr.slice(-8);
+    const data = DB[addr];
+    document.getElementById('allocArea').innerHTML = '';
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('nfArea').style.display = 'none';
+    if (!data || data.goat === 0) {
+      document.getElementById('nfArea').style.display = 'block';
     } else {
-      document.getElementById('allocArea').innerHTML=
-        '<div class="alloc-section">'+
-        '<div class="alloc-label">// ALLOCATION VERIFIED //</div>'+
-        '<div class="alloc-prefix"><span>></span> GOAT_PUNK_BALANCE:</div>'+
-        '<div class="alloc-num">'+data.goat+'</div>'+
-        '<div class="alloc-unit">GOAT PUNK</div>'+
-        '<div class="alloc-bar"></div>'+
+      document.getElementById('allocArea').innerHTML =
+        '<div class="alloc-section">' +
+        '<div class="alloc-label">// ALLOCATION VERIFIED //</div>' +
+        '<div class="alloc-prefix"><span>></span> GOAT_PUNK_BALANCE:</div>' +
+        '<div class="alloc-num">' + data.goat + '</div>' +
+        '<div class="alloc-unit">GOAT PUNK</div>' +
+        '<div class="alloc-bar"></div>' +
         '</div><div class="divider"></div>';
-      document.getElementById('formArea').style.display='block';
+      document.getElementById('formArea').style.display = 'block';
     }
     show('s2');
+  }
+
+  async function connect(t) {
+    if (t === 'metamask') {
+      // MetaMask 연결
+      if (typeof window.ethereum === 'undefined') {
+        alert('MetaMask가 설치되어 있지 않습니다.
+
+https://metamask.io 에서 설치 후 다시 시도해주세요.');
+        return;
+      }
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const addr = accounts[0];
+        // BSC 네트워크로 전환 (선택)
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x38' }] // BSC Mainnet
+          });
+        } catch(e) {
+          // 네트워크 전환 실패해도 계속 진행
+        }
+        showResult(addr, 'MetaMask');
+      } catch (err) {
+        if (err.code === 4001) {
+          alert('MetaMask 연결이 거부되었습니다.');
+        } else {
+          alert('MetaMask 연결 중 오류가 발생했습니다.');
+        }
+      }
+
+    } else if (t === 'phantom') {
+      // Phantom 연결
+      const provider = window.solana || window.phantom?.solana;
+      if (!provider || !provider.isPhantom) {
+        alert('Phantom 지갑이 설치되어 있지 않습니다.
+
+https://phantom.app 에서 설치 후 다시 시도해주세요.');
+        return;
+      }
+      try {
+        const resp = await provider.connect();
+        const addr = resp.publicKey.toString();
+        showResult(addr, 'Phantom');
+      } catch (err) {
+        if (err.code === 4001) {
+          alert('Phantom 연결이 거부되었습니다.');
+        } else {
+          alert('Phantom 연결 중 오류가 발생했습니다.');
+        }
+      }
+    }
   }
 
   function onBscInput(){
