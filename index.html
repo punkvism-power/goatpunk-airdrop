@@ -947,41 +947,37 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 
   async function connect(t) {
     if (t === 'metamask') {
-      // MetaMask 연결
+      // MetaMask connect
       if (typeof window.ethereum === 'undefined') {
-        alert('MetaMask가 설치되어 있지 않습니다.
-
-https://metamask.io 에서 설치 후 다시 시도해주세요.');
+        alert('MetaMask is not installed. Visit https://metamask.io');
         return;
       }
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         const addr = accounts[0];
-        // BSC 네트워크로 전환 (선택)
+        // Switch to BSC network
         try {
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: '0x38' }] // BSC Mainnet
           });
         } catch(e) {
-          // 네트워크 전환 실패해도 계속 진행
+          // continue even if network switch fails
         }
         showResult(addr, 'MetaMask');
       } catch (err) {
         if (err.code === 4001) {
-          alert('MetaMask 연결이 거부되었습니다.');
+          alert('MetaMask is not installed. Visit https://metamask.io');
         } else {
-          alert('MetaMask 연결 중 오류가 발생했습니다.');
+          alert('MetaMask is not installed. Visit https://metamask.io');
         }
       }
 
     } else if (t === 'phantom') {
-      // Phantom 연결
+      // Phantom connect
       const provider = window.solana || window.phantom?.solana;
       if (!provider || !provider.isPhantom) {
-        alert('Phantom 지갑이 설치되어 있지 않습니다.
-
-https://phantom.app 에서 설치 후 다시 시도해주세요.');
+        alert('Phantom is not installed. Visit https://phantom.app');
         return;
       }
       try {
@@ -990,9 +986,9 @@ https://phantom.app 에서 설치 후 다시 시도해주세요.');
         showResult(addr, 'Phantom');
       } catch (err) {
         if (err.code === 4001) {
-          alert('Phantom 연결이 거부되었습니다.');
+          alert('Phantom is not installed. Visit https://phantom.app');
         } else {
-          alert('Phantom 연결 중 오류가 발생했습니다.');
+          alert('Phantom is not installed. Visit https://phantom.app');
         }
       }
     }
@@ -1038,7 +1034,7 @@ https://phantom.app 에서 설치 후 다시 시도해주세요.');
       show('s3');
     })
     .catch(() => {
-      // 전송 실패해도 완료 화면은 보여줌
+      // show success screen even if request fails
       document.getElementById('sNum').textContent = data.goat;
       document.getElementById('sMeta').innerHTML =
         '<div class="meta-row"><span class="mk">TIMESTAMP</span><span class="mv">' + now + '</span></div>' +
