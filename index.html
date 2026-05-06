@@ -320,6 +320,18 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 .nf-code { font-size: clamp(10px,1.1vw,13px); color: #FF3B3B; letter-spacing: 0.2em; margin-bottom: 1.2rem; }
 .not-found p { font-size: clamp(12px,1.3vw,15px); color: var(--text-dim); line-height: 1.9; letter-spacing: 0.05em; }
 .back-link { font-size: clamp(10px,1.1vw,13px); color: var(--green); cursor: pointer; margin-top: 1rem; display: inline-block; letter-spacing: 0.15em; text-transform: uppercase; border-bottom: 1px solid rgba(0,255,133,0.3); padding-bottom: 3px; }
+.nf-x {
+  width: clamp(80px, 12vw, 130px);
+  height: clamp(80px, 12vw, 130px);
+  margin: 0 auto 1.5rem;
+  animation: nf-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.nf-x svg { width: 100%; height: 100%; filter: drop-shadow(0 0 12px rgba(255,59,59,0.5)); }
+@keyframes nf-pop {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
 .nf-ko { font-size: clamp(14px,1.5vw,18px); color: #FFFFFF; font-weight: 500; line-height: 1.8; margin-bottom: 0.5rem; }
 .nf-en { font-size: clamp(11px,1.2vw,14px); color: var(--text-dim); line-height: 1.8; margin-bottom: 1.5rem; }
 .nf-cs { font-size: clamp(11px,1.2vw,14px); color: var(--amber, #FFB800); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid rgba(255,184,0,0.3); padding: 10px 20px; border-radius: 4px; display: inline-block; margin-bottom: 1rem; text-decoration: none; transition: all 0.2s; }
@@ -407,6 +419,13 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
       <button class="submit-btn" id="submitBtn" disabled onclick="doSubmit()">// SUBMIT CLAIM //</button>
     </div>
     <div id="nfArea" class="not-found" style="display:none;">
+      <div class="nf-x">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" stroke="#FF3B3B" stroke-width="4" fill="rgba(255,59,59,0.07)"/>
+          <line x1="30" y1="30" x2="70" y2="70" stroke="#FF3B3B" stroke-width="6" stroke-linecap="round"/>
+          <line x1="70" y1="30" x2="30" y2="70" stroke="#FF3B3B" stroke-width="6" stroke-linecap="round"/>
+        </svg>
+      </div>
       <div class="nf-code">ERROR_404 // ALLOCATION_NOT_FOUND</div>
       <p class="nf-ko">이벤트 대상자가 아닙니다.<br>보유하신 지갑 주소를 다시 한번 확인해 주세요.</p>
       <p class="nf-en">No allocation record found for this wallet address.<br>Please verify your wallet and try again.</p>
