@@ -237,6 +237,14 @@ body::after {
   flex-shrink: 0;
 }
 .conn-change:hover { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px rgba(0,255,133,0.15); }
+.conn-disconnect {
+  color: var(--text-dim); cursor: pointer;
+  border: 1px solid var(--border);
+  padding: 6px 8px; border-radius: 4px; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.conn-disconnect:hover { color: #FF3B3B; border-color: rgba(255,59,59,0.5); box-shadow: 0 0 10px rgba(255,59,59,0.15); }
 
 /* ── ALLOC ── */
 .alloc-section { text-align: center; margin: 3rem 0 2.5rem; }
@@ -1043,6 +1051,27 @@ showResult(addr, 'MetaMask');
   }
 
   function goBack(){
+    const b=document.getElementById('bscInput');if(b)b.value='';
+    const s=document.getElementById('submitBtn');if(s)s.disabled=true;
+    show('s1');
+  }
+
+  async function disconnect(){
+    if(!confirm('Disconnect wallet?')) return;
+    try {
+      // MetaMask disconnect
+      if(wallet && wallet.type === 'MetaMask' && window.ethereum) {
+        // MetaMask는 앱 자체에서 해제해야 하므로 안내
+      }
+      // Phantom disconnect
+      if(wallet && wallet.type === 'Phantom') {
+        const provider = window.solana || window.phantom?.solana;
+        if(provider && provider.disconnect) {
+          await provider.disconnect();
+        }
+      }
+    } catch(e) {}
+    wallet = null;
     const b=document.getElementById('bscInput');if(b)b.value='';
     const s=document.getElementById('submitBtn');if(s)s.disabled=true;
     show('s1');
