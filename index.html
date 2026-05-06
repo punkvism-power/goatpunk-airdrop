@@ -303,7 +303,11 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 .not-found { text-align: center; padding: 5rem 0; }
 .nf-code { font-size: clamp(10px,1.1vw,13px); color: #FF3B3B; letter-spacing: 0.2em; margin-bottom: 1.2rem; }
 .not-found p { font-size: clamp(12px,1.3vw,15px); color: var(--text-dim); line-height: 1.9; letter-spacing: 0.05em; }
-.back-link { font-size: clamp(10px,1.1vw,13px); color: var(--green); cursor: pointer; margin-top: 1.75rem; display: inline-block; letter-spacing: 0.15em; text-transform: uppercase; border-bottom: 1px solid rgba(0,255,133,0.3); padding-bottom: 3px; }
+.back-link { font-size: clamp(10px,1.1vw,13px); color: var(--green); cursor: pointer; margin-top: 1rem; display: inline-block; letter-spacing: 0.15em; text-transform: uppercase; border-bottom: 1px solid rgba(0,255,133,0.3); padding-bottom: 3px; }
+.nf-ko { font-size: clamp(14px,1.5vw,18px); color: #FFFFFF; font-weight: 500; line-height: 1.8; margin-bottom: 0.5rem; }
+.nf-en { font-size: clamp(11px,1.2vw,14px); color: var(--text-dim); line-height: 1.8; margin-bottom: 1.5rem; }
+.nf-cs { font-size: clamp(11px,1.2vw,14px); color: var(--amber, #FFB800); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid rgba(255,184,0,0.3); padding: 10px 20px; border-radius: 4px; display: inline-block; margin-bottom: 1rem; text-decoration: none; transition: all 0.2s; }
+.nf-cs:hover { background: rgba(255,184,0,0.08); border-color: rgba(255,184,0,0.6); }
 
 /* ── SUCCESS ── */
 .success-wrap { text-align: center; padding: 1.5rem 0; }
@@ -381,8 +385,10 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
     </div>
     <div id="nfArea" class="not-found" style="display:none;">
       <div class="nf-code">ERROR_404 // ALLOCATION_NOT_FOUND</div>
-      <p>No allocation record found for this wallet address.<br>Please try a different wallet.</p>
-      <span class="back-link" onclick="goBack()">[ RETRY WITH DIFFERENT WALLET ]</span>
+      <p class="nf-ko">이벤트 대상자가 아닙니다.<br>보유하신 지갑 주소를 다시 한번 확인해 주세요.</p>
+      <p class="nf-en">No allocation record found for this wallet address.<br>Please verify your wallet and try again.</p>
+      <a class="nf-cs" href="https://open.kakao.com/o/saYgup1g" target="_blank">[ 고객센터 문의 // CONTACT SUPPORT ]</a>
+      <span class="back-link" onclick="goBack()">[ 다른 지갑으로 재시도 // RETRY WITH DIFFERENT WALLET ]</span>
     </div>
   </div>
 
