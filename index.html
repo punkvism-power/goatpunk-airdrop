@@ -1065,23 +1065,25 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 
   async function connect(t) {
     if (t === 'metamask') {
-      if (typeof window.ethereum === 'undefined') {
+      // MetaMask 전용 provider 찾기 (Phantom 등 다른 지갑 제외)
+      let mmProvider = null;
+      if (window.ethereum?.providers?.length) {
+        mmProvider = window.ethereum.providers.find(p => p.isMetaMask && !p.isPhantom);
+      } else if (window.ethereum?.isMetaMask && !window.ethereum?.isPhantom) {
+        mmProvider = window.ethereum;
+      }
+      if (!mmProvider) {
         alert('MetaMask is not installed. Visit https://metamask.io');
         return;
       }
       try {
-        let provider = window.ethereum;
-        if (window.ethereum?.providers) {
-          provider = window.ethereum.providers.find(p => p.isMetaMask) || window.ethereum;
-        }
-        // 항상 계정 선택 팝업 강제
         try {
-          await provider.request({
+          await mmProvider.request({
             method: 'wallet_requestPermissions',
             params: [{ eth_accounts: {} }]
           });
         } catch(e) {}
-        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        const accounts = await mmProvider.request({ method: 'eth_requestAccounts' });
         showResult(accounts[0], 'MetaMask');
       } catch (err) {
         if (err.code === 4001) alert('Connection rejected.');
