@@ -1072,6 +1072,95 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 
   async function connect(t) {
     if (t === 'metamask') {
+
+      // ── MetaMask 전용 provider 탐색 ──
+      let mmProvider = null;
+
+      // 여러 지갑이 있을 때 providers 배열에서 MetaMask만 선택
+      if (window.ethereum?.providers?.length) {
+        mmProvider = window.ethereum.providers.find(
+          p => p.isMetaMask === true && p.isPhantom !== true
+        );
+      }
+      // 단독 ethereum 객체인데 MetaMask인 경우
+      if (!mmProvider && window.ethereum?.isMetaMask && !window.ethereum?.isPhantom) {
+        mmProvider = window.ethereum;
+      }
+
+      if (!mmProvider) {
+        if (confirm('MetaMask가 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?')) {
+          window.open('https://chromewebstore.google.com/detail/nkbihfbeogaeaoehlefnkodbefgpgknn?utm_source=item-share-cb', '_blank');
+        }
+        return;
+      }
+
+      try {
+        // 계정 선택 팝업 강제
+        try {
+          await mmProvider.request({
+            method: 'wallet_requestPermissions',
+            params: [{ eth_accounts: {} }]
+          });
+        } catch(e) {}
+        const accounts = await mmProvider.request({ method: 'eth_requestAccounts' });
+        if (accounts && accounts[0]) {
+          showResult(accounts[0], 'MetaMask');
+        }
+      } catch (err) {
+        if (err.code === 4001) alert('연결이 거부되었습니다.');
+      }
+
+    } else if (t === 'phantom') {
+
+      // ── Phantom 전용 provider 탐색 (window.solana 절대 사용 안 함) ──
+      const phProvider = window.phantom?.solana;
+
+      if (!phProvider || !phProvider.isPhantom) {
+        if (confirm('Phantom이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?')) {
+          window.open('https://chromewebstore.google.com/detail/bfnaelmomeimhlpmgjnjophhpkkoljpa?utm_source=item-share-cb', '_blank');
+        }
+        return;
+      }
+
+      try {
+        // 기존 연결 끊고 새로 연결
+        try { await phProvider.disconnect(); } catch(e) {}
+        await new Promise(r => setTimeout(r, 400));
+        const resp = await phProvider.connect({ onlyIfTrusted: false });
+        if (resp?.publicKey) {
+          showResult(resp.publicKey.toString(), 'Phantom');
+        }
+      } catch (err) {
+        if (err.code === 4001) alert('연결이 거부되었습니다.');
+      }
+    }
+  }
+
+    function showResult(addr, type) {
+    wallet = {type: type, addr: addr};
+    document.getElementById('connAddr').textContent = addr.slice(0,10)+'···'+addr.slice(-8);
+    const data = DB[addr];
+    document.getElementById('allocArea').innerHTML = '';
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('nfArea').style.display = 'none';
+    if (!data || data.goat === 0) {
+      document.getElementById('nfArea').style.display = 'block';
+    } else {
+      document.getElementById('allocArea').innerHTML =
+        '<div class="alloc-section">' +
+        '<div class="alloc-label">// ALLOCATION VERIFIED //</div>' +
+        '<div class="alloc-prefix"><span>></span> GOAT_PUNK_BALANCE:</div>' +
+        '<div class="alloc-num">' + data.goat + '</div>' +
+        '<div class="alloc-unit">GOAT PUNK</div>' +
+        '<div class="alloc-bar"></div>' +
+        '</div><div class="divider"></div>';
+      document.getElementById('formArea').style.display = 'block';
+    }
+    show('s2');
+  }
+
+  async function connect(t) {
+    if (t === 'metamask') {
       // MetaMask 전용 provider 찾기 (Phantom 완전 제외)
       let mmProvider = null;
       if (window.ethereum?.providers?.length) {
