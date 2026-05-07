@@ -1184,10 +1184,6 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 
   async function disconnect(){
     try {
-      if(wallet && wallet.type === 'MetaMask' && window.ethereum) {
-        // MetaMask 완전 잠금 (로그아웃과 동일)
-        await window.ethereum.request({ method: 'wallet_lock' });
-      }
       if(wallet && wallet.type === 'Phantom') {
         const provider = window.solana || window.phantom?.solana;
         if(provider && provider.disconnect) {
@@ -1195,10 +1191,8 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
         }
       }
     } catch(e) {}
-    wallet = null;
-    const b=document.getElementById('bscInput');if(b)b.value='';
-    const s=document.getElementById('submitBtn');if(s)s.disabled=true;
-    show('s1');
+    // 페이지 완전 새로고침 - JS 메모리 초기화
+    window.location.reload();
   }
 
   function show(id){
