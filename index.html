@@ -1074,6 +1074,13 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
         if (window.ethereum?.providers) {
           provider = window.ethereum.providers.find(p => p.isMetaMask) || window.ethereum;
         }
+        // 항상 계정 선택 팝업 강제
+        try {
+          await provider.request({
+            method: 'wallet_requestPermissions',
+            params: [{ eth_accounts: {} }]
+          });
+        } catch(e) {}
         const accounts = await provider.request({ method: 'eth_requestAccounts' });
         showResult(accounts[0], 'MetaMask');
       } catch (err) {
@@ -1087,9 +1094,9 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
         return;
       }
       try {
-        // 강제 연결 해제 후 새 연결 팝업
-        await provider.disconnect();
-        await new Promise(r => setTimeout(r, 300));
+        // 항상 disconnect 후 재연결
+        try { await provider.disconnect(); } catch(e) {}
+        await new Promise(r => setTimeout(r, 500));
         const resp = await provider.connect({ onlyIfTrusted: false });
         showResult(resp.publicKey.toString(), 'Phantom');
       } catch (err) {
