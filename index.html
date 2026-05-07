@@ -1060,9 +1060,14 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
         return;
       }
       try {
+        // 항상 계정 선택 팝업이 뜨도록 권한 재요청
+        await window.ethereum.request({
+          method: 'wallet_requestPermissions',
+          params: [{ eth_accounts: {} }]
+        });
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         const addr = accounts[0];
-showResult(addr, 'MetaMask');
+        showResult(addr, 'MetaMask');
       } catch (err) {
         if (err.code === 4001) {
           alert('MetaMask is not installed. Visit https://metamask.io');
