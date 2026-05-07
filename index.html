@@ -1065,42 +1065,33 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 
   async function connect(t) {
     if (t === 'metamask') {
+      if (typeof window.ethereum === 'undefined') {
+        alert('MetaMask is not installed. Visit https://metamask.io');
+        return;
+      }
       try {
         let provider = window.ethereum;
-        // MetaMask 여러개일 경우 MetaMask 전용 선택
         if (window.ethereum?.providers) {
           provider = window.ethereum.providers.find(p => p.isMetaMask) || window.ethereum;
         }
-        if (!provider) {
-          alert('MetaMask is not installed. Visit https://metamask.io');
-          return;
-        }
-        // 항상 계정 선택 팝업
-        await provider.request({
-          method: 'wallet_requestPermissions',
-          params: [{ eth_accounts: {} }]
-        });
         const accounts = await provider.request({ method: 'eth_requestAccounts' });
         showResult(accounts[0], 'MetaMask');
       } catch (err) {
-        if (err.code !== 4001) alert('MetaMask connection error.');
+        if (err.code === 4001) alert('Connection rejected.');
       }
 
     } else if (t === 'phantom') {
+      const provider = window.phantom?.solana || window.solana;
+      if (!provider?.isPhantom) {
+        alert('Phantom is not installed. Visit https://phantom.app');
+        return;
+      }
       try {
-        const provider = window.phantom?.solana || window.solana;
-        if (!provider?.isPhantom) {
-          alert('Phantom is not installed. Visit https://phantom.app');
-          return;
-        }
-        // Phantom 강제 재연결
-        if (provider.isConnected) {
-          await provider.disconnect();
-        }
+        if (provider.isConnected) await provider.disconnect();
         const resp = await provider.connect({ onlyIfTrusted: false });
         showResult(resp.publicKey.toString(), 'Phantom');
       } catch (err) {
-        if (err.code !== 4001) alert('Phantom connection error.');
+        if (err.code === 4001) alert('Connection rejected.');
       }
     }
   }
