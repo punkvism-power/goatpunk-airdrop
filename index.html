@@ -1169,6 +1169,10 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 
   async function disconnect(){
     try {
+      if(wallet && wallet.type === 'MetaMask' && window.ethereum) {
+        // MetaMask 강제 잠금 - 다시 연결 시 반드시 팝업 뜸
+        await window.ethereum.request({ method: 'wallet_revokePermissions', params: [{ eth_accounts: {} }] });
+      }
       if(wallet && wallet.type === 'Phantom') {
         const provider = window.solana || window.phantom?.solana;
         if(provider && provider.disconnect) {
