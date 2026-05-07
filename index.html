@@ -1073,29 +1073,33 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
   async function connect(t) {
     if (t === 'metamask') {
 
-      // ── MetaMask 전용 provider 탐색 ──
-      // Phantom이 window.ethereum을 오염시킬 수 있어서 엄격하게 체크
+      // ── MetaMask 감지: EIP-6963 표준 방식 ──
+      // Phantom이 window.ethereum을 오염시키므로 EIP-6963으로 정확히 감지
       let mmProvider = null;
 
-      // 1순위: providers 배열에서 MetaMask만 (Phantom, Coinbase 등 제외)
-      if (window.ethereum?.providers?.length) {
+      // EIP-6963: 각 지갑이 자신을 공지하는 표준
+      const providers6963 = [];
+      window.addEventListener('eip6963:announceProvider', (e) => {
+        providers6963.push(e.detail);
+      });
+      window.dispatchEvent(new Event('eip6963:requestProvider'));
+      await new Promise(r => setTimeout(r, 200));
+
+      // EIP-6963으로 MetaMask 찾기
+      const mmInfo = providers6963.find(p =>
+        p.info?.name?.toLowerCase().includes('metamask') &&
+        !p.info?.name?.toLowerCase().includes('phantom')
+      );
+      if (mmInfo) mmProvider = mmInfo.provider;
+
+      // EIP-6963 실패 시 providers 배열에서 찾기
+      if (!mmProvider && window.ethereum?.providers?.length) {
         mmProvider = window.ethereum.providers.find(p =>
-          p.isMetaMask === true &&
-          p.isPhantom !== true &&
-          p.isCoinbaseWallet !== true
+          p.isMetaMask === true && p.isPhantom !== true
         );
       }
 
-      // 2순위: 단독 ethereum이 순수 MetaMask인지 확인
-      // Phantom이 주입한 경우 window.phantom도 같이 존재하므로 제외
-      if (!mmProvider &&
-          window.ethereum?.isMetaMask &&
-          !window.ethereum?.isPhantom &&
-          !window.phantom) {
-        mmProvider = window.ethereum;
-      }
-
-      // MetaMask 없음
+      // 그것도 없으면 MetaMask 없음
       if (!mmProvider) {
         if (confirm('MetaMask가 설치되어 있지 않습니다.\n크롬 웹스토어 설치 페이지로 이동하시겠습니까?')) {
           window.open('https://chromewebstore.google.com/detail/nkbihfbeogaeaoehlefnkodbefgpgknn?utm_source=item-share-cb', '_blank');
