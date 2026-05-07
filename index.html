@@ -1120,26 +1120,37 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 
     } else if (t === 'phantom') {
 
-      // ── Phantom 전용 provider 탐색 (window.solana 절대 사용 안 함) ──
+      // ── Phantom 전용 provider (window.solana 절대 사용 안 함) ──
       const phProvider = window.phantom?.solana;
 
       if (!phProvider || !phProvider.isPhantom) {
-        if (confirm('Phantom이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?')) {
+        if (confirm('Phantom이 설치되어 있지 않습니다.\n크롬 웹스토어 설치 페이지로 이동하시겠습니까?')) {
           window.open('https://chromewebstore.google.com/detail/bfnaelmomeimhlpmgjnjophhpkkoljpa?utm_source=item-share-cb', '_blank');
         }
         return;
       }
 
       try {
-        // 기존 연결 끊고 새로 연결
+        // 연결 상태 무관하게 항상 disconnect 후 재연결
         try { await phProvider.disconnect(); } catch(e) {}
-        await new Promise(r => setTimeout(r, 400));
+        // 충분히 기다린 후 재연결 (이전 작업 잔재 정리)
+        await new Promise(r => setTimeout(r, 600));
+        // onlyIfTrusted: false = 항상 팝업 강제
         const resp = await phProvider.connect({ onlyIfTrusted: false });
         if (resp?.publicKey) {
           showResult(resp.publicKey.toString(), 'Phantom');
         }
       } catch (err) {
-        if (err.code === 4001) alert('연결이 거부되었습니다.');
+        if (err.code === 4001) {
+          alert('연결이 거부되었습니다.');
+        } else {
+          // 오류 시 잠깐 후 재시도
+          try {
+            await new Promise(r => setTimeout(r, 800));
+            const resp2 = await phProvider.connect({ onlyIfTrusted: false });
+            if (resp2?.publicKey) showResult(resp2.publicKey.toString(), 'Phantom');
+          } catch(e2) {}
+        }
       }
     }
   }
