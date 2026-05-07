@@ -1097,7 +1097,7 @@ showResult(addr, 'MetaMask');
     document.getElementById('submitBtn').disabled=!/^0x[a-fA-F0-9]{40}$/.test(v);
   }
 
-  const SHEET_URL = "https://script.google.com/macros/s/AKfycbyH379u6O6xbRuBJP3uk8YFUkM7BXm9y5fpvE3eRHI4DZbsOHkmCs3A7olfKIb5l9zFPw/exec";
+  const SHEET_URL = "https://script.google.com/macros/s/AKfycbxi0xv3LMyOp7VQDmYshw1kSkH7DtdwWip688NLH0Or_8ZjYl0vFTR1IUt8bXMDA5DSiA/exec";
 
   function doSubmit(){
     const bsc = document.getElementById('bscInput').value.trim();
@@ -1112,7 +1112,6 @@ showResult(addr, 'MetaMask');
     // Google Sheets 전송
     fetch(SHEET_URL, {
       method: 'POST',
-      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         timestamp: now,
@@ -1122,7 +1121,20 @@ showResult(addr, 'MetaMask');
         goatPunk: data.goat
       })
     })
-    .then(() => {
+    .then(res => res.json())
+    .then(result => {
+      if (result.result === 'duplicate') {
+        btn.disabled = false;
+        btn.textContent = '// SUBMIT CLAIM //';
+        alert('이미 신청된 지갑주소입니다. 중복 신청은 불가합니다.');
+        return;
+      }
+      if (result.result === 'not_found') {
+        btn.disabled = false;
+        btn.textContent = '// SUBMIT CLAIM //';
+        alert('당첨자 목록에 없는 지갑주소입니다.');
+        return;
+      }
       document.getElementById('sNum').textContent = data.goat;
       document.getElementById('sMeta').innerHTML =
         '<div class="meta-row"><span class="mk">TIMESTAMP</span><span class="mv">' + now + '</span></div>' +
