@@ -1087,7 +1087,9 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
         return;
       }
       try {
-        if (provider.isConnected) await provider.disconnect();
+        // 강제 연결 해제 후 새 연결 팝업
+        await provider.disconnect();
+        await new Promise(r => setTimeout(r, 300));
         const resp = await provider.connect({ onlyIfTrusted: false });
         showResult(resp.publicKey.toString(), 'Phantom');
       } catch (err) {
