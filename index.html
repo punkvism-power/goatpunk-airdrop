@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>GOAT PUNK // AIRDROP</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1064,51 +1065,42 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 
   async function connect(t) {
     if (t === 'metamask') {
-      // MetaMask connect
-      if (typeof window.ethereum === 'undefined') {
-        alert('MetaMask is not installed. Visit https://metamask.io');
-        return;
-      }
       try {
-        // 기존 권한 취소 후 새로 요청 - 항상 계정 선택 팝업
-        try {
-          await window.ethereum.request({
-            method: 'wallet_revokePermissions',
-            params: [{ eth_accounts: {} }]
-          });
-        } catch(e) {}
-        await window.ethereum.request({
+        let provider = window.ethereum;
+        // MetaMask 여러개일 경우 MetaMask 전용 선택
+        if (window.ethereum?.providers) {
+          provider = window.ethereum.providers.find(p => p.isMetaMask) || window.ethereum;
+        }
+        if (!provider) {
+          alert('MetaMask is not installed. Visit https://metamask.io');
+          return;
+        }
+        // 항상 계정 선택 팝업
+        await provider.request({
           method: 'wallet_requestPermissions',
           params: [{ eth_accounts: {} }]
         });
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const addr = accounts[0];
-        showResult(addr, 'MetaMask');
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        showResult(accounts[0], 'MetaMask');
       } catch (err) {
-        if (err.code === 4001) {
-          alert('MetaMask is not installed. Visit https://metamask.io');
-        } else {
-          alert('MetaMask is not installed. Visit https://metamask.io');
-        }
+        if (err.code !== 4001) alert('MetaMask connection error.');
       }
 
     } else if (t === 'phantom') {
-      // Phantom connect
-      const provider = window.solana || window.phantom?.solana;
-      if (!provider || !provider.isPhantom) {
-        alert('Phantom is not installed. Visit https://phantom.app');
-        return;
-      }
       try {
-        const resp = await provider.connect();
-        const addr = resp.publicKey.toString();
-        showResult(addr, 'Phantom');
-      } catch (err) {
-        if (err.code === 4001) {
+        const provider = window.phantom?.solana || window.solana;
+        if (!provider?.isPhantom) {
           alert('Phantom is not installed. Visit https://phantom.app');
-        } else {
-          alert('Phantom is not installed. Visit https://phantom.app');
+          return;
         }
+        // Phantom 강제 재연결
+        if (provider.isConnected) {
+          await provider.disconnect();
+        }
+        const resp = await provider.connect({ onlyIfTrusted: false });
+        showResult(resp.publicKey.toString(), 'Phantom');
+      } catch (err) {
+        if (err.code !== 4001) alert('Phantom connection error.');
       }
     }
   }
@@ -1184,15 +1176,28 @@ input:focus { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,133,0.
 
   async function disconnect(){
     try {
+      if(wallet && wallet.type === 'MetaMask' && window.ethereum) {
+        let provider = window.ethereum;
+        if (window.ethereum?.providers) {
+          provider = window.ethereum.providers.find(p => p.isMetaMask) || window.ethereum;
+        }
+        // MetaMask 권한 완전 해제
+        await provider.request({
+          method: 'wallet_revokePermissions',
+          params: [{ eth_accounts: {} }]
+        });
+      }
       if(wallet && wallet.type === 'Phantom') {
-        const provider = window.solana || window.phantom?.solana;
-        if(provider && provider.disconnect) {
+        const provider = window.phantom?.solana || window.solana;
+        if(provider?.disconnect) {
           await provider.disconnect();
         }
       }
     } catch(e) {}
-    // 페이지 완전 새로고침 - JS 메모리 초기화
-    window.location.reload();
+    wallet = null;
+    const b = document.getElementById('bscInput'); if(b) b.value='';
+    const s = document.getElementById('submitBtn'); if(s) s.disabled=true;
+    show('s1');
   }
 
   function show(id){
